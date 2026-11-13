@@ -1,0 +1,122 @@
+import type { Phrase } from "./types";
+const raw = [
+  [
+    "u01",
+    "Usa el trato formal para despedirte.",
+    "Tschüss!",
+    "Auf Wiedersehen!",
+  ],
+  ["u02", "Cambia el sujeto a wir.", "Ich bin hier.", "Wir sind hier."],
+  [
+    "u03",
+    "Transforma la afirmación en una pregunta sí/no.",
+    "Du bist zwanzig Jahre alt.",
+    "Bist du zwanzig Jahre alt?",
+  ],
+  [
+    "u04",
+    "Cambia a plural con zwei.",
+    "Ich habe ein Kind.",
+    "Ich habe zwei Kinder.",
+  ],
+  [
+    "u05",
+    "Empieza por Heute.",
+    "Ich lerne heute Deutsch.",
+    "Heute lerne ich Deutsch.",
+  ],
+  [
+    "u06",
+    "Pide con Ich möchte y el artículo indefinido correcto.",
+    "der Tee",
+    "Ich möchte einen Tee.",
+  ],
+  [
+    "u07",
+    "Niega la frase con kein.",
+    "Ich brauche Milch.",
+    "Ich brauche keine Milch.",
+  ],
+  [
+    "u08",
+    "Cambia de singular a plural.",
+    "Das Zimmer ist hell.",
+    "Die Zimmer sind hell.",
+  ],
+  [
+    "u09",
+    "Responde con el medio de transporte y mit.",
+    "Wie fährst du? (der Bus)",
+    "Ich fahre mit dem Bus.",
+  ],
+  [
+    "u10",
+    "Añade müssen para expresar obligación.",
+    "Ich arbeite heute.",
+    "Ich muss heute arbeiten.",
+  ],
+  [
+    "u11",
+    "Une las dos frases con aber.",
+    "Ich lese gern. Ich tanze nicht gern.",
+    "Ich lese gern, aber ich tanze nicht gern.",
+  ],
+  ["u12", "Cambia a du.", "Ich stehe früh auf.", "Du stehst früh auf."],
+  [
+    "u13",
+    "Pregunta con wann por la hora de salida.",
+    "Der Zug fährt um neun Uhr ab.",
+    "Wann fährt der Zug ab?",
+  ],
+  [
+    "u14",
+    "Da una indicación formal con Sie.",
+    "viel Wasser trinken",
+    "Trinken Sie viel Wasser.",
+  ],
+  [
+    "u15",
+    "Sustituye den Mantel por un pronombre.",
+    "Ich finde den Mantel schön.",
+    "Ich finde ihn schön.",
+  ],
+  ["u16", "Empieza por Heute.", "Es ist heute kalt.", "Heute ist es kalt."],
+  [
+    "u17",
+    "Cuenta la acción en Perfekt y cambia heute por gestern.",
+    "Ich koche heute.",
+    "Ich habe gestern gekocht.",
+  ],
+  [
+    "u18",
+    "Pasa al Perfekt.",
+    "Wir gehen nach Hause.",
+    "Wir sind nach Hause gegangen.",
+  ],
+  [
+    "u19",
+    "Rechaza usando leider y können.",
+    "Ich komme.",
+    "Ich kann leider nicht kommen.",
+    "Leider kann ich nicht kommen.",
+  ],
+  [
+    "u20",
+    "Pide una repetición formal y cortés.",
+    "wiederholen / das / bitte",
+    "Können Sie das bitte wiederholen?",
+  ],
+];
+export const transformations: Phrase[] = raw.map(
+  ([unit, task, prompt, de, ...variants], i) => ({
+    id: `${unit}-t${i + 1}`,
+    unit,
+    task,
+    prompt,
+    de,
+    es: task,
+    variants,
+    hint: "Identifica el sujeto y la forma conjugada antes de responder.",
+    rule: `${unit}-grammar`,
+  }),
+);
