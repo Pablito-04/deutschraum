@@ -29,6 +29,38 @@ Du hast recht.|Tienes razón.|Tienes razón.|Mostrar acuerdo|neutro|Du hast rech
 Auf jeden Fall.|En cada caso.|Sin duda / en cualquier caso.|Afirmar con seguridad|neutro|Kommst du? Auf jeden Fall.
 Mach's gut!|¡Hazlo bien!|¡Cuídate!|Despedida cercana|informal|Tschüss, Ben. Mach's gut!
 Bis zum nächsten Mal!|¡Hasta la próxima vez!|¡Hasta la próxima!|Cerrar un encuentro|neutro|Danke und bis zum nächsten Mal!`;
+const exampleTranslations: string[] = [
+  "Hola, Anna, ¿cómo estás?",
+  "¿Todo bien? Sí, gracias.",
+  "No hay problema, te ayudo.",
+  "¿Llegas tarde? No pasa nada.",
+  "Lo siento, no puedo ir.",
+  "¿Dónde está Ben? No lo sé.",
+  "¿Vienes mañana? Ya veremos.",
+  "¿Me ayudas? ¡Claro!",
+  "Las siete y media son las siete y treinta. ¡Ah, entiendo!",
+  "¿Perdón? No le entiendo.",
+  "Otra vez, por favor. Más despacio.",
+  "La sopa está lista. ¡Que aproveche!",
+  "¡Salud! ¡Por ti!",
+  "¡Salud! Gracias.",
+  "¿Estás enfermo? ¡Que te mejores!",
+  "¿Vais al cine? ¡Que lo paséis bien!",
+  "¡Buena suerte en el examen!",
+  "Llego en cinco minutos. ¡Hasta ahora!",
+  "Me voy ahora. ¡Hasta luego!",
+  "Gracias. ¡Que tenga buen día!",
+  "Hasta el lunes. ¡Buen fin de semana!",
+  "Aquí tiene diez euros. Quédese con el cambio.",
+  "La cuenta, por favor. ¿Pagan juntos o por separado?",
+  "Querría un té.",
+  "¿A las seis? Me viene bien.",
+  "Ahora me toca.",
+  "Tienes razón, eso es mejor.",
+  "¿Vienes? Sin duda.",
+  "¡Adiós, Ben! ¡Cuídate!",
+  "Gracias y hasta la próxima.",
+];
 export const expressions: Expression[] = raw.split("\n").map((row, i) => {
   const [de, literal, meaning, context, register, example] = row.split("|");
   return {
@@ -39,6 +71,7 @@ export const expressions: Expression[] = raw.split("\n").map((row, i) => {
     context,
     register,
     example,
+    exampleTranslation: exampleTranslations[i],
   };
 });
 export const artists = [

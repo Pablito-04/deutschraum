@@ -4,6 +4,8 @@ import {
   units,
   transformations,
   expressions,
+  vocabulary,
+  lookupKey,
   type Expression,
   type Word,
 } from "../content";
@@ -12,7 +14,7 @@ import { Exercise, shuffled } from "../components/Exercise";
 import { PageHead, Tabs, AudioButton } from "../components/common";
 import { Icon } from "../components/Icon";
 export function Grammar() {
-  const { data, update, notice, record } = useApp();
+  const { data, update, notice, record, addCard } = useApp();
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState("rules");
   const unit = units.find((u) => u.id === params.get("unidad")) ?? units[0];
@@ -29,6 +31,13 @@ export function Grammar() {
     target.id,
   );
   const add = (e: Expression) => {
+    const existing = [...vocabulary, ...data.customWords].find(
+      (w) => lookupKey(w.de) === lookupKey(e.de),
+    );
+    if (existing) {
+      addCard(existing.id);
+      return;
+    }
     const id = `custom-${e.id}`;
     const w: Word = {
       id,
@@ -38,7 +47,7 @@ export function Grammar() {
       level: "A1",
       pos: "expresión",
       example: e.example,
-      translation: "Ejemplo de uso: " + e.context,
+      translation: e.exampleTranslation,
       aliases: [],
       related: [],
       custom: true,
@@ -157,6 +166,7 @@ export function Grammar() {
                 {e.context} · <span className="pill">{e.register}</span>
               </p>
               <p lang="de">{e.example}</p>
+              <p className="small">{e.exampleTranslation}</p>
               <button className="text-link" onClick={() => add(e)}>
                 <Icon name="plus" size={17} />
                 Añadir a tarjetas

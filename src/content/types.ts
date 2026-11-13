@@ -81,4 +81,5 @@ export interface Expression {
   context: string;
   register: string;
   example: string;
+  exampleTranslation: string;
 }

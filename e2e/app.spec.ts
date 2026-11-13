@@ -452,6 +452,21 @@ test("palabra de una historia a SRS, sin duplicados y con escritura", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Siguiente tarjeta" }).click();
   await expect.poll(async () => (await state(page)).cards[0].box).toBe(1);
+  await go(page, "/gramatica");
+  await page
+    .getByRole("button", { name: "30 expresiones útiles", exact: true })
+    .click();
+  const expression = page
+    .locator(".expression-card")
+    .filter({ hasText: "Kein Problem." });
+  await expression
+    .getByRole("button", { name: "Añadir a tarjetas", exact: true })
+    .click();
+  await expression
+    .getByRole("button", { name: "Añadir a tarjetas", exact: true })
+    .click();
+  await expect.poll(async () => (await state(page)).cards.length).toBe(2);
+  expect((await state(page)).customWords).toHaveLength(0);
 });
 
 test("sesión diaria configurable, sin perder actividades ni borradores", async ({

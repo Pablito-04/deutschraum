@@ -21,7 +21,7 @@ Fecha: 13 de noviembre de 2026.
 - `npm run validate`: pasa, incluyendo IDs, referencias, cobertura, soluciones y metadatos.
 - `npm test`: 36 pruebas unitarias pasan.
 - `npm run build`: TypeScript y producción pasan; JavaScript ~497 kB / ~164 kB gzip, CSS ~45 kB / ~10 kB gzip.
-- Playwright: batería completa de 32 recorridos pasó bajo la base `/deutschraum/`; las 20 unidades recorrieron lectura, práctica y prueba final. Se añadió una prueba adicional de consulta de vocabulario desde soluciones, comprobada junto con seis recorridos relacionados. El workflow ejecuta las 33 pruebas actuales antes de desplegar.
+- Playwright: las 33 pruebas de navegador pasan en GitHub Actions. Las 20 unidades recorren lectura, práctica y prueba final. Se comprobaron además móvil, ruta `/deutschraum/`, offline y actualización sin pérdida de datos.
 - Comprobadas recarga offline, escritura/persistencia, variantes, erratas, rechazo gramatical, SRS, edición/borrado de palabras personales, exportación/importación, letras, móvil y actualización del service worker sin borrar IndexedDB.
 - Revisión visual en escritorio, 375 px y modo oscuro. En el navegador del Mac se detectaron nueve voces alemanas locales y se solicitó una frase TTS; la prueba automática cubre el aviso sin voz. No se certifica la calidad acústica de todas las voces/dispositivos.
 - Los perfiles y datos de prueba son aislados y no se incorporan como progreso del usuario.
@@ -30,7 +30,7 @@ Fecha: 13 de noviembre de 2026.
 
 Repositorio elegido: `Pablito-04/deutschraum`. El usuario pidió finalmente que sea **público** para utilizar GitHub Pages gratuito. No convertirlo a privado sin una nueva instrucción y sin comprobar antes la compatibilidad del plan con Pages.
 
-El workflow `.github/workflows/deploy.yml` valida, compila y publica cada push a main. La URL prevista es `https://pablito-04.github.io/deutschraum/`. El estado final del primer despliegue se registra al verificarlo; una URL prevista por sí sola no constituye publicación.
+El workflow `.github/workflows/deploy.yml` valida, compila y publica cada push a main. La web está publicada en https://pablito-04.github.io/deutschraum/ y su respuesta HTTPS 200 se verificó. Primera ejecución correcta: https://github.com/Pablito-04/deutschraum/actions/runs/43449084542 . El repositorio y Pages están confirmados como públicos. Las revisiones posteriores se comprueban en Actions antes de darlas por publicadas.
 
 ## Límites observados y siguientes verificaciones
 
