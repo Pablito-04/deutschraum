@@ -5,7 +5,7 @@ Aplicación educativa estática React/TypeScript, interfaz española, alemán es
 ## Trabajo y arquitectura
 
 - `src/content`: contenido declarativo propio; IDs estables, nunca regenerarlos al reordenar unidades.
-- `src/correction`: comparación conservadora por tokens. No eliminar diacríticos ni aceptar cambios de artículo, persona, negación o terminación mediante similitud.
+- `src/correction`: comparación conservadora por tokens. En escritura validar las mayúsculas alemanas, especialmente sustantivos; la puntuación no objetivo es opcional. No confundir ambas políticas ni tratar una falta de mayúscula como errata aceptable. En selección pueden compararse tokens proporcionados sin distinguir la inicial de frase. No eliminar diacríticos ni aceptar cambios de artículo, persona, negación o terminación mediante similitud.
 - `src/learning`: SRS, selección de sesión y métricas deterministas.
 - `src/storage`: IndexedDB versionado; importar solo datos validados, confirmar reemplazos, conservar progreso en actualizaciones.
 - `src/audio`: SpeechSynthesis; solo voz alemana, gestionar voiceschanged, no simular evaluación oral ni prometer TTS offline universal.

@@ -104,9 +104,10 @@ export function Exercise({
   }, [input, chosen, exerciseId, mode, bankSeedKey, bankSeed]);
   const check = (solution = false) => {
     if (result) return;
-    const verdict = solution
+    const verdict: Correction = solution
       ? { status: "incorrect" as const, expected: phrase.de, diff: [] }
       : correct(answer, [phrase.de, ...phrase.variants], {
+          caseSensitive: mode === "translation" || mode === "dictation",
           allowTypos: mode !== "order" && mode !== "choice",
           lexicon,
         });
@@ -291,11 +292,19 @@ export function Exercise({
               ? "Richtig! Bien hecho."
               : result.status === "typo"
                 ? "Correcto, con una pequeña errata."
-                : revealed
-                  ? "Esta es una solución registrada."
-                  : "Tu respuesta no coincide con las soluciones registradas."}
+                : result.reason === "capitalization"
+                  ? "Revisa las mayúsculas."
+                  : revealed
+                    ? "Esta es una solución registrada."
+                    : "Tu respuesta no coincide con las soluciones registradas."}
           </strong>
           <WordSentence text={result.expected} />
+          {result.reason === "capitalization" && (
+            <p className="small">
+              En alemán importan las mayúsculas: los sustantivos, los nombres
+              propios y el inicio de frase, además del tratamiento formal Sie.
+            </p>
+          )}
           {mode === "dictation" && result.diff.length > 0 && (
             <div className="diff">
               {result.diff.map((d, i) => (

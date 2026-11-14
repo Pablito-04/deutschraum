@@ -25,6 +25,7 @@ export function CardReview({
   const [flip, setFlip] = useState(false);
   const [input, setInput] = useState("");
   const [graded, setGraded] = useState<boolean | null>(null);
+  const [caseError, setCaseError] = useState(false);
   const start = useRef(performance.now());
   const word = [...vocabulary, ...data.customWords].find(
     (w) => w.id === wordId,
@@ -57,7 +58,16 @@ export function CardReview({
     );
   };
   const check = () => {
-    const r = correct(input, [word.de, ...word.aliases], { allowTypos: false });
+    const answers = [word.de, ...word.aliases];
+    if (word.article || word.pos === "expresión")
+      answers.push(
+        word.de.charAt(0).toLocaleUpperCase("de") + word.de.slice(1),
+      );
+    const r = correct(input, answers, {
+      allowTypos: false,
+      caseSensitive: true,
+    });
+    setCaseError(r.reason === "capitalization");
     setFlip(true);
     grade(r.status === "correct");
   };
@@ -114,6 +124,14 @@ export function CardReview({
           <p className="muted">{word.translation}</p>
           {word.forms && <p className="small">{word.forms.join(" · ")}</p>}
         </div>
+      )}
+      {caseError && (
+        <p className="error-text">
+          Revisa las mayúsculas de «{word.de}».{" "}
+          {word.pos === "sustantivo"
+            ? "Los sustantivos alemanes llevan mayúscula."
+            : "Respeta las mayúsculas de la forma mostrada."}
+        </p>
       )}
       {graded === null ? (
         mode === "write" ? (

@@ -81,7 +81,9 @@ export function Songs() {
     const ok =
       mode === "gaps"
         ? gaps.every(
-            (i) => normalize(answers[i] ?? "") === normalize(tokens[i].text),
+            (i) =>
+              normalize(answers[i] ?? "", true) ===
+              normalize(tokens[i].text, true),
           )
         : order.map((i) => pieces[i]).join(mode === "words" ? " " : "\n") ===
           pieces.join(mode === "words" ? " " : "\n");
@@ -365,7 +367,7 @@ export function Songs() {
                   {tokens.map((t) =>
                     gaps.includes(t.index) ? (
                       <span
-                        className={`lyric-gap ${checked ? (normalize(answers[t.index] ?? "") === normalize(t.text) ? "ok" : "wrong") : ""}`}
+                        className={`lyric-gap ${checked ? (normalize(answers[t.index] ?? "", true) === normalize(t.text, true) ? "ok" : "wrong") : ""}`}
                         key={t.index}
                       >
                         <input

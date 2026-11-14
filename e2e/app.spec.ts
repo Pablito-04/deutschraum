@@ -559,7 +559,7 @@ test("dictados sin signos de exclamación no penalizan la respuesta", async ({
 }) => {
   await enter(page);
   await go(page, "/oido");
-  await page.getByLabel("Tu respuesta", { exact: true }).fill("hallo");
+  await page.getByLabel("Tu respuesta", { exact: true }).fill("Hallo");
   await page.getByRole("button", { name: "Comprobar", exact: true }).click();
   await expect(
     page.getByText("Richtig! Bien hecho.", { exact: true }),
@@ -568,7 +568,14 @@ test("dictados sin signos de exclamación no penalizan la respuesta", async ({
     page.locator(".diff .changed, .diff .missing, .diff .added"),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByLabel("Tu respuesta", { exact: true }).fill("guten morgen");
+  await page.getByLabel("Tu respuesta", { exact: true }).fill("Guten morgen");
+  await page.getByRole("button", { name: "Comprobar", exact: true }).click();
+  await expect(
+    page.getByText("Revisa las mayúsculas.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".diff .changed")).toContainText("morgen → Morgen");
+  await page.getByRole("button", { name: "Intentar otra vez" }).click();
+  await page.getByLabel("Tu respuesta", { exact: true }).fill("Guten Morgen");
   await page.getByRole("button", { name: "Comprobar", exact: true }).click();
   await expect(
     page.getByText("Richtig! Bien hecho.", { exact: true }),
@@ -625,4 +632,44 @@ test("Hola tiene distractores y conserva la selección al recargar", async ({
   await expect(
     page.getByText("Richtig! Bien hecho.", { exact: true }),
   ).toBeVisible();
+});
+
+test("los sustantivos también exigen mayúscula en las tarjetas escritas", async ({
+  page,
+}) => {
+  await enter(page);
+  await go(page, "/vocabulario");
+  await page.getByLabel("Buscar vocabulario").fill("der Kaffee");
+  await page
+    .locator(".word-row")
+    .getByRole("button", { name: "Tarjeta", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Español → alemán", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Repasar pendientes" }).click();
+  await page.locator(".flashcard input").fill("der kaffee");
+  await page
+    .locator(".flashcard")
+    .getByRole("button", { name: "Comprobar", exact: true })
+    .click();
+  await expect(page.locator(".flashcard .error-text").first()).toContainText(
+    "Revisa las mayúsculas",
+  );
+  await expect.poll(async () => (await state(page)).cards[0].box).toBe(0);
+  await page.getByRole("button", { name: "Siguiente tarjeta" }).click();
+  await page
+    .getByRole("button", { name: "Repasar der Kaffee ahora", exact: true })
+    .click();
+  await page.locator(".flashcard input").fill("der Kaffee");
+  await page
+    .locator(".flashcard")
+    .getByRole("button", { name: "Comprobar", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Guardado. Volverá a aparecer en su próxima fecha de repaso.",
+    ),
+  ).toBeVisible();
+  await expect.poll(async () => (await state(page)).cards[0].box).toBe(1);
 });

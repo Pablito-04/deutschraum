@@ -2,6 +2,7 @@ export type Verdict = "correct" | "typo" | "incorrect";
 export interface Correction {
   status: Verdict;
   expected: string;
+  reason?: "capitalization";
   diff: {
     actual: string;
     expected: string;
@@ -86,7 +87,11 @@ function safeTypo(a: string, b: string, lexicon: Set<string>): boolean {
   }
   return oneEdit(a, b);
 }
-export function wordDiff(actual: string, expected: string): Correction["diff"] {
+export function wordDiff(
+  actual: string,
+  expected: string,
+  caseSensitive = false,
+): Correction["diff"] {
   const a = actual.split(/\s+/).filter((word) => normalize(word).length > 0),
     b = expected.split(/\s+/).filter((word) => normalize(word).length > 0);
   const dp = Array.from({ length: a.length + 1 }, () =>
@@ -100,7 +105,10 @@ export function wordDiff(actual: string, expected: string): Correction["diff"] {
         dp[i - 1][j] + 1,
         dp[i][j - 1] + 1,
         dp[i - 1][j - 1] +
-          (normalize(a[i - 1]) === normalize(b[j - 1]) ? 0 : 1),
+          (normalize(a[i - 1], caseSensitive) ===
+          normalize(b[j - 1], caseSensitive)
+            ? 0
+            : 1),
       );
   const out: Correction["diff"] = [];
   let i = a.length,
@@ -110,12 +118,19 @@ export function wordDiff(actual: string, expected: string): Correction["diff"] {
       i &&
       j &&
       dp[i][j] ===
-        dp[i - 1][j - 1] + (normalize(a[i - 1]) === normalize(b[j - 1]) ? 0 : 1)
+        dp[i - 1][j - 1] +
+          (normalize(a[i - 1], caseSensitive) ===
+          normalize(b[j - 1], caseSensitive)
+            ? 0
+            : 1)
     ) {
       out.unshift({
         actual: a[--i],
         expected: b[--j],
-        kind: normalize(a[i]) === normalize(b[j]) ? "match" : "changed",
+        kind:
+          normalize(a[i], caseSensitive) === normalize(b[j], caseSensitive)
+            ? "match"
+            : "changed",
       });
     } else if (j && dp[i][j] === dp[i][j - 1] + 1) {
       out.unshift({ actual: "", expected: b[--j], kind: "missing" });
@@ -135,33 +150,52 @@ export function correct(
     lexicon?: Set<string>;
   } = {},
 ): Correction {
+  const caseSensitive = options.caseSensitive ?? true;
   const accepted = [...answers, ...(options.keyboardVariants ?? [])];
-  const norm = normalize(actual, options.caseSensitive);
-  const exact = accepted.find(
-    (s) => normalize(s, options.caseSensitive) === norm,
-  );
+  const norm = normalize(actual, caseSensitive);
+  const exact = accepted.find((s) => normalize(s, caseSensitive) === norm);
   if (exact)
     return {
       status: "correct",
       expected: exact,
-      diff: wordDiff(actual, exact),
+      diff: wordDiff(actual, exact, caseSensitive),
+    };
+  const capitalizationAnswer = caseSensitive
+    ? accepted.find((s) => normalize(s) === normalize(actual))
+    : undefined;
+  if (capitalizationAnswer)
+    return {
+      status: "incorrect",
+      reason: "capitalization",
+      expected: capitalizationAnswer,
+      diff: wordDiff(actual, capitalizationAnswer, true),
     };
   const a = tokens(actual);
-  if (!options.caseSensitive && options.allowTypos !== false) {
+  const original = normalize(actual, true).split(" ");
+  if (options.allowTypos !== false) {
     for (const answer of accepted) {
       const b = tokens(answer);
       if (a.length !== b.length) continue;
+      const expectedCase = normalize(answer, true).split(" ");
       const changed = a
         .map((v, i) => (v === b[i] ? -1 : i))
         .filter((i) => i >= 0);
       if (
         changed.length === 1 &&
+        // La tolerancia a una errata nunca borra otra falta de mayúsculas.
+        (!caseSensitive ||
+          original.every((word, i) =>
+            i === changed[0]
+              ? (word.match(/\p{Lu}/gu) ?? []).join("") ===
+                (expectedCase[i].match(/\p{Lu}/gu) ?? []).join("")
+              : word === expectedCase[i],
+          )) &&
         safeTypo(a[changed[0]], b[changed[0]], options.lexicon ?? new Set())
       )
         return {
           status: "typo",
           expected: answer,
-          diff: wordDiff(actual, answer),
+          diff: wordDiff(actual, answer, caseSensitive),
         };
     }
   }
@@ -169,8 +203,14 @@ export function correct(
     accepted
       .map((s) => ({
         s,
-        score: wordDiff(actual, s).filter((d) => d.kind !== "match").length,
+        score: wordDiff(actual, s, caseSensitive).filter(
+          (d) => d.kind !== "match",
+        ).length,
       }))
       .sort((x, y) => x.score - y.score)[0]?.s ?? "";
-  return { status: "incorrect", expected, diff: wordDiff(actual, expected) };
+  return {
+    status: "incorrect",
+    expected,
+    diff: wordDiff(actual, expected, caseSensitive),
+  };
 }

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { correct, normalize, wordDiff } from "../correction";
 describe("corrector determinista", () => {
   it.each([
-    ["guten morgen", "Guten Morgen!"],
+    ["Guten Morgen", "Guten Morgen!"],
     ["Guten Morgen!", "Guten Morgen"],
     ["¡Guten Morgen!", "Guten Morgen!"],
     ["Hallo", "Hallo!"],
@@ -14,15 +14,16 @@ describe("corrector determinista", () => {
       "Ich lese gern, aber ich tanze nicht gern.",
     ],
   ])("no penaliza puntuación opcional: %s", (answer, expected) => {
-    expect(correct(answer, [expected], { allowTypos: false }).status).toBe(
-      "correct",
-    );
+    expect(
+      correct(answer, [expected], { allowTypos: false, caseSensitive: true })
+        .status,
+    ).toBe("correct");
     expect(wordDiff(answer, expected).every((d) => d.kind === "match")).toBe(
       true,
     );
   });
-  it("normaliza espacios, Unicode, puntuación y capitalización", () => {
-    expect(correct("  ICH  heiße Anna!! ", ["Ich heiße Anna."]).status).toBe(
+  it("normaliza espacios, Unicode y puntuación", () => {
+    expect(correct("  Ich  heiße Anna!! ", ["Ich heiße Anna."]).status).toBe(
       "correct",
     );
     expect(normalize("scho\u0308n")).toBe("schön");
@@ -98,6 +99,35 @@ describe("corrector determinista", () => {
     expect(correct("berlin", ["Berlin"], { caseSensitive: true }).status).toBe(
       "incorrect",
     );
+  });
+  it.each([
+    ["Guten morgen", "Guten Morgen!"],
+    ["Ich trinke kaffee", "Ich trinke Kaffee."],
+    ["der kaffee", "der Kaffee"],
+    ["Ich lese ein buch", "Ich lese ein Buch."],
+    ["Wie heißen sie", "Wie heißen Sie?"],
+  ])("la escritura alemana exige las mayúsculas: %s", (answer, expected) => {
+    const result = correct(answer, [expected]);
+    expect(result.status).toBe("incorrect");
+    expect(result.reason).toBe("capitalization");
+    expect(result.diff.some((d) => d.kind === "changed")).toBe(true);
+  });
+  it("permite erratas conservadoras sin ocultar faltas de mayúsculas", () => {
+    expect(
+      correct("Der Supermakrt ist hier", ["Der Supermarkt ist hier."], {
+        caseSensitive: true,
+      }).status,
+    ).toBe("typo");
+    expect(
+      correct("Der supermakrt ist hier", ["Der Supermarkt ist hier."], {
+        caseSensitive: true,
+      }).status,
+    ).toBe("incorrect");
+    expect(
+      correct("der Supermakrt ist hier", ["Der Supermarkt ist hier."], {
+        caseSensitive: true,
+      }).status,
+    ).toBe("incorrect");
   });
   it("muestra omisiones y adiciones por palabra", () => {
     expect(
