@@ -47,6 +47,10 @@ El SRS usa cajas con intervalos de 1, 3, 7 y 16 días. Un fallo vuelve a caja 0 
 
 ## Corrección y audio
 
+La puntuación es opcional: `guten morgen`, `Guten Morgen!` y `¡Guten Morgen!` se corrigen igual. Los signos aislados tampoco se marcan como palabras añadidas en un dictado.
+
+Los bancos de construcción incluyen tres o cuatro distractores del nivel, además de las palabras necesarias para las variantes válidas. Incluso «Hola» requiere elegir entre cuatro opciones. Las preguntas de reconocimiento ofrecen cuatro frases distintas. Las opciones se mezclan entre rondas, pero se conservan al recargar un borrador.
+
 El motor normaliza Unicode, espacios, capitalización y puntuación, sin borrar diéresis. Solo acepta órdenes y variantes registrados. Las erratas se evalúan por palabra, con una sola edición conservadora en una palabra larga; protege términos gramaticales, finales flexivos y palabras existentes del diccionario. No confunde `der/die/das`, `ein/eine`, `hat/hast`, `nicht/nichts` ni `schon/schön`. Las sustituciones de vocales se rechazan. Las grafías de teclado solo se aceptan cuando se proporcionan explícitamente como variantes; no se transforma globalmente ß/ss ni ä/a. Una respuesta no registrada se describe como no reconocida.
 
 El audio usa SpeechSynthesis y únicamente voces alemanas. Se atiende `voiceschanged`, se prefieren voces locales y se puede elegir voz/velocidad. Si no hay voz alemana, aparece un aviso. El TTS depende del sistema/navegador y puede necesitar conexión; no hay evaluación de pronunciación. Los enlaces musicales requieren conexión. No se incluyen letras comerciales ni se generan traducciones de textos importados.

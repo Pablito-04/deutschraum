@@ -553,3 +553,76 @@ test("las soluciones permiten consultar y guardar vocabulario", async ({
     .click();
   await expect.poll(async () => (await state(page)).cards.length).toBe(1);
 });
+
+test("dictados sin signos de exclamación no penalizan la respuesta", async ({
+  page,
+}) => {
+  await enter(page);
+  await go(page, "/oido");
+  await page.getByLabel("Tu respuesta", { exact: true }).fill("hallo");
+  await page.getByRole("button", { name: "Comprobar", exact: true }).click();
+  await expect(
+    page.getByText("Richtig! Bien hecho.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".diff .changed, .diff .missing, .diff .added"),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await page.getByLabel("Tu respuesta", { exact: true }).fill("guten morgen");
+  await page.getByRole("button", { name: "Comprobar", exact: true }).click();
+  await expect(
+    page.getByText("Richtig! Bien hecho.", { exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        (await state(page)).attempts.filter((a: any) => a.correct).length,
+    )
+    .toBe(2);
+});
+
+test("Hola tiene distractores y conserva la selección al recargar", async ({
+  page,
+}) => {
+  await enter(page);
+  await page.getByLabel("Duración de sesión").selectOption("10");
+  await page.getByRole("button", { name: "Comenzar mi sesión" }).click();
+  const reading = units[0].readings[0];
+  for (let i = 0; i < reading.questions.length; i++)
+    await page
+      .locator(".question")
+      .nth(i)
+      .getByRole("button", {
+        name: reading.questions[i].choices[reading.questions[i].answer],
+        exact: true,
+      })
+      .click();
+  await page.getByRole("button", { name: "Comprobar comprensión" }).click();
+  await page
+    .locator(".comprehension")
+    .getByRole("button", { name: "Continuar", exact: true })
+    .click();
+  await expect(page.locator(".exercise-card h2")).toHaveText("¡Hola!");
+  const pool = page.locator(".word-pool");
+  await expect(pool.getByRole("button")).toHaveCount(4);
+  await pool.getByRole("button", { name: "Tschüss!", exact: true }).click();
+  await expect
+    .poll(async () => (await state(page)).drafts["lesson:u01-p1"])
+    .toBeTruthy();
+  const layout = await pool.getByRole("button").allTextContents();
+  await page.reload();
+  await expect(page.locator(".answer-slots")).toContainText("Tschüss!");
+  expect(await pool.getByRole("button").allTextContents()).toEqual(layout);
+  await page.getByRole("button", { name: "Comprobar", exact: true }).click();
+  await expect(
+    page.getByText("Tu respuesta no coincide con las soluciones registradas.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Intentar otra vez" }).click();
+  await pool.getByRole("button", { name: "Hallo!", exact: true }).click();
+  await page.getByRole("button", { name: "Comprobar", exact: true }).click();
+  await expect(
+    page.getByText("Richtig! Bien hecho.", { exact: true }),
+  ).toBeVisible();
+});

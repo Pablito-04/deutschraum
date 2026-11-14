@@ -11,9 +11,9 @@ export interface Correction {
 export function normalize(s: string, caseSensitive = false): string {
   const t = s
     .normalize("NFC")
-    .trim()
-    .replace(/[.,!?;:„“”"«»]/g, " ")
-    .replace(/\s+/g, " ");
+    .replace(/[.,!?¡¿;:…„“”"«»]/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
   return caseSensitive ? t : t.toLocaleLowerCase("de");
 }
 export function tokens(s: string): string[] {
@@ -87,8 +87,8 @@ function safeTypo(a: string, b: string, lexicon: Set<string>): boolean {
   return oneEdit(a, b);
 }
 export function wordDiff(actual: string, expected: string): Correction["diff"] {
-  const a = actual.trim().split(/\s+/).filter(Boolean),
-    b = expected.trim().split(/\s+/).filter(Boolean);
+  const a = actual.split(/\s+/).filter((word) => normalize(word).length > 0),
+    b = expected.split(/\s+/).filter((word) => normalize(word).length > 0);
   const dp = Array.from({ length: a.length + 1 }, () =>
     Array<number>(b.length + 1).fill(0),
   );

@@ -1,6 +1,6 @@
 # Estado de implementación
 
-Fecha: 13 de noviembre de 2026.
+Actualizado: 14 de noviembre de 2026.
 
 ## Implementado y comprobado
 
@@ -19,12 +19,19 @@ Fecha: 13 de noviembre de 2026.
 ## Verificación
 
 - `npm run validate`: pasa, incluyendo IDs, referencias, cobertura, soluciones y metadatos.
-- `npm test`: 36 pruebas unitarias pasan.
-- `npm run build`: TypeScript y producción pasan; JavaScript ~497 kB / ~164 kB gzip, CSS ~45 kB / ~10 kB gzip.
-- Playwright: las 33 pruebas de navegador pasan en GitHub Actions. Las 20 unidades recorren lectura, práctica y prueba final. Se comprobaron además móvil, ruta `/deutschraum/`, offline y actualización sin pérdida de datos.
+- `npm test`: 48 pruebas unitarias pasan.
+- `npm run build`: TypeScript y producción pasan; JavaScript ~500 kB / ~165 kB gzip, CSS ~45 kB / ~10 kB gzip.
+- Playwright: las 35 pruebas de navegador pasan localmente bajo `/deutschraum/`; GitHub Actions repite la batería antes de publicar. Las 20 unidades recorren lectura, práctica y prueba final. Se comprobaron además móvil, ruta `/deutschraum/`, offline y actualización sin pérdida de datos.
 - Comprobadas recarga offline, escritura/persistencia, variantes, erratas, rechazo gramatical, SRS, edición/borrado de palabras personales, exportación/importación, letras, móvil y actualización del service worker sin borrar IndexedDB.
 - Revisión visual en escritorio, 375 px y modo oscuro. En el navegador del Mac se detectaron nueve voces alemanas locales y se solicitó una frase TTS; la prueba automática cubre el aviso sin voz. No se certifica la calidad acústica de todas las voces/dispositivos.
 - Los perfiles y datos de prueba son aislados y no se incorporan como progreso del usuario.
+
+## Correcciones del 14 de noviembre
+
+- Se elimina el espacio residual que dejaba la puntuación al normalizar: omitir una exclamación o interrogación ya no causa un fallo. También se ignoran los signos españoles de apertura y los signos aislados en las diferencias de un dictado.
+- El motor de construcción añade distractores preparados y palabras de la misma unidad o anteriores; «Hola» conserva su contenido y pasa de uno a cuatro botones. Los ejercicios de reconocimiento ofrecen cuatro frases diferentes.
+- Se mezclan las opciones por ronda y se guarda su semilla junto al borrador, para que recargar no cambie una selección ya empezada. Los índices originales de las palabras se mantienen compatibles con el progreso previo.
+- Nuevas regresiones verifican «guten morgen» sin puntuación, una opción equivocada en «Hola», la recuperación del banco al recargar, los IDs de palabras repetidas y la posibilidad de construir todas las soluciones registradas.
 
 ## Publicación
 

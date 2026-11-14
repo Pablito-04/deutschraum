@@ -1,6 +1,26 @@
 import { describe, it, expect } from "vitest";
 import { correct, normalize, wordDiff } from "../correction";
 describe("corrector determinista", () => {
+  it.each([
+    ["guten morgen", "Guten Morgen!"],
+    ["Guten Morgen!", "Guten Morgen"],
+    ["¡Guten Morgen!", "Guten Morgen!"],
+    ["Hallo", "Hallo!"],
+    ["¡ Hallo !", "Hallo!"],
+    ["Wie heißt du", "Wie heißt du?"],
+    ["  Guten   Morgen  ", "Guten Morgen!"],
+    [
+      "Ich lese gern aber ich tanze nicht gern",
+      "Ich lese gern, aber ich tanze nicht gern.",
+    ],
+  ])("no penaliza puntuación opcional: %s", (answer, expected) => {
+    expect(correct(answer, [expected], { allowTypos: false }).status).toBe(
+      "correct",
+    );
+    expect(wordDiff(answer, expected).every((d) => d.kind === "match")).toBe(
+      true,
+    );
+  });
   it("normaliza espacios, Unicode, puntuación y capitalización", () => {
     expect(correct("  ICH  heiße Anna!! ", ["Ich heiße Anna."]).status).toBe(
       "correct",

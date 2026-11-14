@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Phrase } from "../content";
 import { phrases, vocabulary } from "../content";
@@ -9,18 +9,13 @@ import { AudioButton } from "./common";
 import { Icon } from "./Icon";
 import { WordSentence } from "./WordSentence";
 export type Mode = "translation" | "dictation" | "order" | "choice";
-export function shuffled<T>(list: T[], seed: string): T[] {
-  const out = [...list];
-  let n = [...seed].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
-  for (let i = out.length - 1; i > 0; i--) {
-    n = (n * 1664525 + 1013904223) >>> 0;
-    const j = n % (i + 1);
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  if (out.length > 1 && out.every((v, i) => v === list[i]))
-    out.push(out.shift()!);
-  return out;
-}
+export { shuffled } from "../learning/selection";
+import {
+  shuffled,
+  buildWordBank,
+  sentenceChoices,
+} from "../learning/selection";
+import { wordConfusions } from "../content/distractors";
 const lexicon = new Set(
   vocabulary.flatMap((w) => [
     ...w.de
@@ -48,9 +43,28 @@ export function Exercise({
 }) {
   const { data, record, update } = useApp();
   const saved = data.drafts[exerciseId] ?? "";
+  const bankSeedKey = `${exerciseId}:selection-seed`;
+  const [bankSeed] = useState(
+    () => data.drafts[bankSeedKey] || crypto.randomUUID(),
+  );
+  const bank = useMemo(
+    () => buildWordBank(phrase, phrases, wordConfusions, bankSeed),
+    [phrase, bankSeed],
+  );
+  const source = bank.map((token) => token.text);
+  const pool = useMemo(
+    () => shuffled(bank, bankSeed + ":pool"),
+    [bank, bankSeed],
+  );
   const [input, setInput] = useState(mode === "order" ? "" : saved);
   const [chosen, setChosen] = useState<number[]>(
-    mode === "order" ? saved.split(",").filter(Boolean).map(Number) : [],
+    mode === "order"
+      ? saved
+          .split(",")
+          .filter(Boolean)
+          .map(Number)
+          .filter((id) => Number.isInteger(id) && id >= 0 && id < bank.length)
+      : [],
   );
   const [result, setResult] = useState<Correction | null>(null);
   const [versions, setVersions] = useState<
@@ -67,11 +81,6 @@ export function Exercise({
   const tries = useRef(
     data.attempts.filter((a) => a.exercise === exerciseId).length,
   );
-  const source = phrase.de.split(/\s+/);
-  const pool = shuffled(
-    source.map((text, id) => ({ text, id })),
-    phrase.id,
-  );
   const answer =
     mode === "order" ? chosen.map((id) => source[id]).join(" ") : input;
   const skill: Skill =
@@ -85,11 +94,14 @@ export function Exercise({
     const value = mode === "order" ? chosen.join(",") : input;
     const timer = setTimeout(
       () =>
-        update((d) => ({ ...d, drafts: { ...d.drafts, [exerciseId]: value } })),
+        update((d) => ({
+          ...d,
+          drafts: { ...d.drafts, [exerciseId]: value, [bankSeedKey]: bankSeed },
+        })),
       180,
     );
     return () => clearTimeout(timer);
-  }, [input, chosen, exerciseId, mode]);
+  }, [input, chosen, exerciseId, mode, bankSeedKey, bankSeed]);
   const check = (solution = false) => {
     if (result) return;
     const verdict = solution
@@ -119,15 +131,7 @@ export function Exercise({
     );
     started.current = performance.now();
   };
-  const choices = shuffled(
-    [
-      phrase,
-      ...phrases
-        .filter((p) => p.id !== phrase.id && p.unit === phrase.unit)
-        .slice(0, 2),
-    ],
-    phrase.id + "choice",
-  );
+  const choices = sentenceChoices(phrase, phrases, bankSeed);
   return (
     <section className="exercise-card">
       <div className="exercise-top">
@@ -174,7 +178,7 @@ export function Exercise({
         <>
           <div className="answer-slots" aria-label="Tu oración">
             {chosen.length === 0 ? (
-              <span>Toca las palabras para construir la frase…</span>
+              <span>Elige las palabras que necesitas…</span>
             ) : (
               chosen.map((id, i) => (
                 <button
@@ -189,6 +193,9 @@ export function Exercise({
               ))
             )}
           </div>
+          <p className="small">
+            Hay palabras de más. Elige solo las que corresponden.
+          </p>
           <div className="word-pool" aria-label="Palabras disponibles">
             {pool.map((t) => (
               <button
@@ -412,6 +419,7 @@ export function Exercise({
                   update((d) => {
                     const drafts = { ...d.drafts };
                     delete drafts[exerciseId];
+                    delete drafts[bankSeedKey];
                     return { ...d, drafts };
                   });
                   onAdvance({
